@@ -123,7 +123,3 @@ class Producer:
         except Exception as e:
             logger.exception("Exception raised while trying to close a produce. topic_name = %s", self.topic_name)
             raise e
-
-    def time_millis(self):
-        """Use this function to get the key for Kafka Events"""
-        return int(round(time.time() * 1000))

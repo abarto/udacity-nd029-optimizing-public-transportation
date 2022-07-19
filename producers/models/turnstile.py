@@ -6,7 +6,7 @@ from typing import ClassVar, TYPE_CHECKING
 
 from confluent_kafka import avro
 
-from models.common import get_topic_safe_station_name
+from models.common import get_topic_safe_station_name, time_millis
 from models.producer import Producer
 from models.turnstile_hardware import TurnstileHardware
 
@@ -45,7 +45,7 @@ class Turnstile(Producer):
         for _ in range(num_entries):
             self.producer.produce(
                 topic=self.topic_name,
-                key={"timestamp": self.time_millis()},
+                key={"timestamp": time_millis()},
                 value={
                     "station_id": self.station.station_id,
                     "station_name": self.station.name,

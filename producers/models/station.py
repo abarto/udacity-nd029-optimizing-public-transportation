@@ -8,6 +8,7 @@ from this import d
 from confluent_kafka import avro
 
 from models import Turnstile
+from models.common import get_topic_safe_station_name, time_millis
 from models.producer import Producer
 
 if TYPE_CHECKING:
@@ -32,13 +33,7 @@ class Station(Producer):
         direction_b: Optional["Station"] = None
     ):
         self.name = name
-        station_name = (
-            self.name.lower()
-            .replace("/", "_and_")
-            .replace(" ", "_")
-            .replace("-", "_")
-            .replace("'", "")
-        )
+        station_name = get_topic_safe_station_name(name)
 
         topic_name = f"com.udacity.nd029.p1.arrival.{station_name}"
         super().__init__(
@@ -57,7 +52,6 @@ class Station(Producer):
         self.b_train = None
         self.turnstile = Turnstile(self)
 
-
     def run(self,
         train: Train,
         direction: str,
@@ -67,7 +61,7 @@ class Station(Producer):
         """Simulates train arrivals at this station"""
         self.producer.produce(
             topic=self.topic_name,
-            key={"timestamp": self.time_millis()},
+            key={"timestamp": time_millis()},
             value={
                 "station_id": self.station_id,
                 "train_id": train.train_id,
