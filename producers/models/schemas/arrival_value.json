@@ -13,23 +13,19 @@
     },
     {
       "name": "direction",
-      "type": {
-        "type": "enum",
-        "name": "directions",
-        "symbols": ["N", "S", "E", "W"]
-      }
+      "type": "string"
     },
     {
       "name": "line",
-      "type": "string"
+      "type": "int"
     },
     {
       "name": "train_status",
-      "type": "string"
+      "type": "int"
     },
     {
       "name": "prev_station_id",
-      "type": "string"
+      "type": "long"
     },
     {
       "name": "prev_station_id",

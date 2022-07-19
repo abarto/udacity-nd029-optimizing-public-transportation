@@ -1,5 +1,6 @@
 """Producer base-class providing common utilites and functionality"""
 from os import environ
+from typing import Any, Final, Optional
 
 import logging
 import time
@@ -16,31 +17,31 @@ class Producer:
     """Defines and provides common functionality amongst Producers"""
 
     # Default value for broper properties. Specific producers can redefine them
-    DEFAULT_BROKER_PROPERTIES = {
+    DEFAULT_BROKER_PROPERTIES: Final[dict[str, Any]] = {
         "enable.idempotence": True,
         "queue.buffering.max.ms": 10
     }
 
     # Default value for topic configuration. Specific producers can redefine them
-    DEFAULT_TOPIC_CONFIG = {
+    DEFAULT_TOPIC_CONFIG: Final[dict[str, Any]] = {
          "compression.type": "lz4",
          "log.cleanup.policy": "delete"
     }
 
     # Tracks existing topics across all Producer instances
-    existing_topics = set([])
+    existing_topics: set[str] = set([])
 
     def __init__(
         self,
         topic_name: str,
         key_schema: RecordSchema,
-        value_schema: RecordSchema = None,
+        value_schema: RecordSchema,
         num_partitions: int = 1,
         num_replicas: int = 1,
-        broker_url: str = None,
-        schema_registry_url: str = None,
-        broker_properties: dict = None,
-        topic_config: dict = None
+        broker_url: Optional[str] = None,
+        schema_registry_url: Optional[str] = None,
+        broker_properties: Optional[dict] = None,
+        topic_config: Optional[dict] = None
     ):
         """Initializes a Producer object with basic settings"""
         self.topic_name = topic_name
@@ -72,7 +73,9 @@ class Producer:
 
         self.producer = AvroProducer(
             self._broker_properties,
-            schema_registry=CachedSchemaRegistryClient(self.schema_registry_url)
+            schema_registry=CachedSchemaRegistryClient(self.schema_registry_url),
+            default_key_schema=self.key_schema,
+            default_value_schema=self.value_schema
         )
 
     def create_topic(self):
@@ -101,7 +104,7 @@ class Producer:
                 ),
             ], operation_timeout=5.0)
 
-            # Since we're only creating one topic, we don't need to iterate over create_topics
+            # Since we're only creating one topic, we don't need to iterate over the create_topics
             # futures dictionary.
             future_result = topic_futures[self.topic_name].result()
 
@@ -116,6 +119,7 @@ class Producer:
         try:
             self.producer.purge()
             self.producer.flush()
+            self.producer.close()
         except Exception as e:
             logger.exception("Exception raised while trying to close a produce. topic_name = %s", self.topic_name)
             raise e
