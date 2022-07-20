@@ -28,10 +28,6 @@
       "type": "long"
     },
     {
-      "name": "prev_station_id",
-      "type": "string"
-    },
-    {
       "name": "prev_direction",
       "type": "string"
     }
