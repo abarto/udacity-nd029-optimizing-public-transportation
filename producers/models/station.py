@@ -22,8 +22,8 @@ logger = logging.getLogger(__name__)
 class Station(Producer):
     """Defines a single station"""
 
-    key_schema: ClassVar[RecordSchema] = avro.load(f"{Path(__file__).parents[0]}/schemas/arrival_key.json")
-    value_schema: ClassVar[RecordSchema] = avro.load(f"{Path(__file__).parents[0]}/schemas/arrival_value.json")
+    key_schema: ClassVar["RecordSchema"] = avro.load(f"{Path(__file__).parents[0]}/schemas/arrival_key.json")
+    value_schema: ClassVar["RecordSchema"] = avro.load(f"{Path(__file__).parents[0]}/schemas/arrival_value.json")
 
     def __init__(self,
         station_id: int,
@@ -41,7 +41,7 @@ class Station(Producer):
             key_schema=Station.key_schema,
             value_schema=Station.value_schema,
             num_partitions=10,
-            num_replicas=2,
+            num_replicas=1,
         )
 
         self.station_id = int(station_id)
@@ -53,7 +53,7 @@ class Station(Producer):
         self.turnstile = Turnstile(self)
 
     def run(self,
-        train: Train,
+        train: "Train",
         direction: str,
         prev_station_id: int,
         prev_direction: str
@@ -88,7 +88,7 @@ class Station(Producer):
 
     def arrive_a(
         self,
-        train: Train,
+        train: "Train",
         prev_station_id: Optional[int],
         prev_direction: Optional[str]
     ):
@@ -98,7 +98,7 @@ class Station(Producer):
 
     def arrive_b(
         self,
-        train: Train,
+        train: "Train",
         prev_station_id: Optional[int],
         prev_direction: Optional[str]
     ):

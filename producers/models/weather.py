@@ -29,7 +29,7 @@ class Weather:  # It doesn't need to be a producer
 
     topic_name: ClassVar[str] = "com.udacity.nd029.p1.weather"
 
-    rest_proxy_url: ClassVar[str] = environ.GET("REST_PROXY_URL") or "http://localhost:8082"
+    rest_proxy_url: ClassVar[str] = environ.get("REST_PROXY_URL") or "http://localhost:8082"
 
     # We're doing a load/dumps combination to validate the schemas
     key_schema: ClassVar[str] = json.dumps(

@@ -19,12 +19,12 @@ logger = logging.getLogger(__name__)
 
 
 class Turnstile(Producer):
-    key_schema: ClassVar[RecordSchema] = avro.load(f"{Path(__file__).parents[0]}/schemas/turnstile_key.json")
-    value_schema: ClassVar[RecordSchema] = avro.load(
+    key_schema: ClassVar["RecordSchema"] = avro.load(f"{Path(__file__).parents[0]}/schemas/turnstile_key.json")
+    value_schema: ClassVar["RecordSchema"] = avro.load(
        f"{Path(__file__).parents[0]}/schemas/turnstile_value.json"
     )
 
-    def __init__(self, station: Station):
+    def __init__(self, station: "Station"):
         """Create the Turnstile"""
         station_name = get_topic_safe_station_name(station.name)
 
@@ -33,12 +33,12 @@ class Turnstile(Producer):
             key_schema=Turnstile.key_schema,
             value_schema=Turnstile.value_schema,
             num_partitions=10,
-            num_replicas=2,
+            num_replicas=1,
         )
         self.station = station
         self.turnstile_hardware = TurnstileHardware(station)
 
-    def run(self, timestamp: datetime, time_step: timedelta):
+    def run(self, timestamp: "datetime", time_step: "timedelta"):
         """Simulates riders entering through the turnstile."""
         num_entries: int = self.turnstile_hardware.get_entries(timestamp, time_step)
 

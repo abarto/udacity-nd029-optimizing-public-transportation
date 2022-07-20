@@ -1,13 +1,14 @@
 """Producer base-class providing common utilites and functionality"""
 from os import environ
-from typing import Any, Final, Optional
+from typing import Any, Final, Optional, TYPE_CHECKING
 
 import logging
-import time
 
-from avro.schema import RecordSchema
 from confluent_kafka.admin import AdminClient, NewTopic
 from confluent_kafka.avro import AvroProducer, CachedSchemaRegistryClient
+
+if TYPE_CHECKING:
+    from avro.schema import RecordSchema
 
 
 logger = logging.getLogger(__name__)
@@ -25,7 +26,7 @@ class Producer:
     # Default value for topic configuration. Specific producers can redefine them
     DEFAULT_TOPIC_CONFIG: Final[dict[str, Any]] = {
          "compression.type": "lz4",
-         "log.cleanup.policy": "delete"
+         "cleanup.policy": "delete"
     }
 
     # Tracks existing topics across all Producer instances
@@ -34,8 +35,8 @@ class Producer:
     def __init__(
         self,
         topic_name: str,
-        key_schema: RecordSchema,
-        value_schema: RecordSchema,
+        key_schema: "RecordSchema",
+        value_schema: "RecordSchema",
         num_partitions: int = 1,
         num_replicas: int = 1,
         broker_url: Optional[str] = None,
@@ -50,18 +51,12 @@ class Producer:
         self.num_partitions = num_partitions
         self.num_replicas = num_replicas
         self.topic_config = topic_config or {}
-        self._broker_url = broker_url or environ.get("BROKER_URL")
-        self._schema_registry_url = schema_registry_url or environ.get("SCHEMA_REGISTRY_URL")
-
-        if not self._broker_url:
-            raise ValueError("Broker URL was not supplied as an argument nor a BROKER_URL environment variable")
-
-        if not self._schema_registry_url:
-            raise ValueError("Schema Registry URL was not supplied as an argument nor a SCHEMA_REGISTRY_URL environment variable")
+        self._broker_url = broker_url or environ.get("BROKER_URL") or "plaintext://localhost:9092"
+        self._schema_registry_url = schema_registry_url or environ.get("SCHEMA_REGISTRY_URL") or "http://localhost:8081"
 
         # Renamed the properties to match the most up-to-date documentation
         self.broker_properties = {
-            "metadata.broker.list": self.broker_url,
+            "bootstrap.servers": self._broker_url,
             "client.id": self.__class__.__name__,
             **(broker_properties or Producer.DEFAULT_BROKER_PROPERTIES),
         }
@@ -72,8 +67,8 @@ class Producer:
             Producer.existing_topics.add(self.topic_name)
 
         self.producer = AvroProducer(
-            self._broker_properties,
-            schema_registry=CachedSchemaRegistryClient(self.schema_registry_url),
+            self.broker_properties,
+            schema_registry=CachedSchemaRegistryClient(self._schema_registry_url),
             default_key_schema=self.key_schema,
             default_value_schema=self.value_schema
         )

@@ -3,7 +3,7 @@ from time import time
 
 def time_millis() -> int:
     """Use this function to get the key for Kafka Events"""
-    return int(round(time.time() * 1000))
+    return int(round(time() * 1000))
 
 
 def get_topic_safe_station_name(station_name: str) -> str:
