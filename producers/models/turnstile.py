@@ -32,7 +32,7 @@ class Turnstile(Producer):
             f"com.udacity.nd029.p1.turnstile.{station_name}",
             key_schema=Turnstile.key_schema,
             value_schema=Turnstile.value_schema,
-            num_partitions=10,
+            num_partitions=4,
             num_replicas=1,
         )
         self.station = station

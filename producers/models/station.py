@@ -26,7 +26,7 @@ class Station(Producer):
     value_schema: ClassVar["RecordSchema"] = avro.load(f"{Path(__file__).parents[0]}/schemas/arrival_value.json")
 
     def __init__(self,
-        station_id: int,
+        station_id: str,
         name: str,
         color: int,
         direction_a: Optional["Station"] = None,
@@ -35,12 +35,12 @@ class Station(Producer):
         self.name = name
         station_name = get_topic_safe_station_name(name)
 
-        topic_name = f"com.udacity.nd029.p1.arrival.{station_name}"
+        topic_name = f"com.udacity.nd029.p1.v1.arrival.{station_name}"
         super().__init__(
             topic_name,
             key_schema=Station.key_schema,
             value_schema=Station.value_schema,
-            num_partitions=10,
+            num_partitions=4,
             num_replicas=1,
         )
 
@@ -55,7 +55,7 @@ class Station(Producer):
     def run(self,
         train: "Train",
         direction: str,
-        prev_station_id: int,
+        prev_station_id: str,
         prev_direction: str
     ):
         """Simulates train arrivals at this station"""

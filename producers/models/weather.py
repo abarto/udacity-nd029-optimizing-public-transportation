@@ -20,14 +20,14 @@ from models.producer import Producer
 logger = logging.getLogger(__name__)
 
 
-class Weather:  # It doesn't need to be a producer
+class Weather(Producer):
     """Defines a simulated weather model"""
 
     status: ClassVar["status"] = IntEnum(
         "status", "sunny partly_cloudy cloudy windy precipitation", start=0
     )
 
-    topic_name: ClassVar[str] = "com.udacity.nd029.p1.weather"
+    topic_name: ClassVar[str] = "com.udacity.nd029.p1.v1.weather"
 
     rest_proxy_url: ClassVar[str] = environ.get("REST_PROXY_URL") or "http://localhost:8082"
 
@@ -42,17 +42,27 @@ class Weather:  # It doesn't need to be a producer
     _WINTER_MONTHS: Final[set[str]] = set((0, 1, 2, 3, 10, 11))
     _SUMMER_MONTHS: Final[set[str]] = set((6, 7, 8))
 
-    headers: ClassVar[dict[str, str]] = {
+    _headers: ClassVar[dict[str, str]] = {
         "ContentType": "application/vnd.kafka.avro.v2+json"
     }
 
     def __init__(self, month):
+        # We don't set the schemas since we're going to use REST proxy
+        super().__init__(
+            Weather.topic_name,
+            key_schema=None,
+            value_schema=None,
+            num_partitions=4,
+            num_replicas=1,
+            create_producer=False
+        )
+
         self.status = Weather.status.sunny
         self.temp = 70.0
         
         if month in Weather._WINTER_MONTHS:
             self.temp = 40.0
-        elif month in Weather.SUMMER_MONTHS:
+        elif month in Weather._SUMMER_MONTHS:
             self.temp = 85.0
 
     def _set_weather(self, month):
@@ -72,7 +82,7 @@ class Weather:  # It doesn't need to be a producer
 
         response = requests.post(
             f"{Weather.rest_proxy_url}/topics/{Weather.topic_name}",
-            headers=Weather.headers,
+            headers=Weather._headers,
             json={
                 "key_schema": Weather.key_schema,
                 "value_schema": Weather.value_schema,
@@ -87,6 +97,7 @@ class Weather:  # It doesn't need to be a producer
                 ]
             }
         )
+
         response.raise_for_status()
 
         logger.debug(

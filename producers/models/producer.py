@@ -19,8 +19,7 @@ class Producer:
 
     # Default value for broper properties. Specific producers can redefine them
     DEFAULT_BROKER_PROPERTIES: Final[dict[str, Any]] = {
-        "enable.idempotence": True,
-        "queue.buffering.max.ms": 10
+        "enable.idempotence": True
     }
 
     # Default value for topic configuration. Specific producers can redefine them
@@ -42,7 +41,8 @@ class Producer:
         broker_url: Optional[str] = None,
         schema_registry_url: Optional[str] = None,
         broker_properties: Optional[dict] = None,
-        topic_config: Optional[dict] = None
+        topic_config: Optional[dict] = None,
+        create_producer: bool = True
     ):
         """Initializes a Producer object with basic settings"""
         self.topic_name = topic_name
@@ -66,12 +66,13 @@ class Producer:
             self.create_topic()
             Producer.existing_topics.add(self.topic_name)
 
-        self.producer = AvroProducer(
-            self.broker_properties,
-            schema_registry=CachedSchemaRegistryClient(self._schema_registry_url),
-            default_key_schema=self.key_schema,
-            default_value_schema=self.value_schema
-        )
+        if create_producer:
+            self.producer = AvroProducer(
+                self.broker_properties,
+                schema_registry=CachedSchemaRegistryClient(self._schema_registry_url),
+                default_key_schema=self.key_schema,
+                default_value_schema=self.value_schema
+            )
 
     def create_topic(self):
         """Creates the producer topic if it does not already exist"""
