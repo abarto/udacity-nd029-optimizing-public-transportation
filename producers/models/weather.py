@@ -43,7 +43,7 @@ class Weather(Producer):
     _SUMMER_MONTHS: Final[set[str]] = set((6, 7, 8))
 
     _headers: ClassVar[dict[str, str]] = {
-        "ContentType": "application/vnd.kafka.avro.v2+json"
+        "Content-Type": "application/vnd.kafka.avro.v2+json"
     }
 
     def __init__(self, month):
