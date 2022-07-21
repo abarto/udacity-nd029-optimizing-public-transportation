@@ -1,5 +1,9 @@
 """Defines trends calculations for stations"""
+from dataclasses import dataclass
 import logging
+
+from os import environ
+from typing import Final
 
 import faust
 
@@ -29,30 +33,50 @@ class TransformedStation(faust.Record):
     line: str
 
 
-# TODO: Define a Faust Stream that ingests data from the Kafka Connect stations topic and
-#   places it into a new topic with only the necessary information.
-app = faust.App("stations-stream", broker="kafka://localhost:9092", store="memory://")
-# TODO: Define the input Kafka Topic. Hint: What topic did Kafka Connect output to?
-# topic = app.topic("TODO", value_type=Station)
-# TODO: Define the output Kafka Topic
-# out_topic = app.topic("TODO", partitions=1)
-# TODO: Define a Faust Table
-#table = app.Table(
-#    # "TODO",
-#    # default=TODO,
-#    partitions=1,
-#    changelog_topic=out_topic,
-#)
+_STATION_FLAG_TO_COLOR_MAP: Final[dict[tuple[bool, bool, bool], int]] = {
+    # red, blue, green
+    (True, False, False): "red",
+    (False, True, False): "blue",
+    (False, False, True): "green"
+}
 
 
-#
-#
-# TODO: Using Faust, transform input `Station` records into `TransformedStation` records. Note that
-# "line" is the color of the station. So if the `Station` record has the field `red` set to true,
-# then you would set the `line` of the `TransformedStation` record to the string `"red"`
-#
-#
+app = faust.App("stations-stream", broker= environ.get("BROKER_URL") or "kafka://localhost:9092", store="memory://")
 
+
+stations_topic = app.topic(
+    "com.udacity.nd029.p1.v1.stations",
+    value_type=Station
+)
+
+
+transformed_stations_topic = app.topic(
+    "com.udacity.nd029.p1.v1.stations.transformed",
+    value_type=TransformedStation,
+    partitions=1
+)
+
+
+table = app.Table(
+   "transformed_station",
+   default=TransformedStation,
+   partitions=1,
+   changelog_topic=transformed_stations_topic,
+)
+
+
+@app.agent(stations_topic)
+async def transform_stations(stations):
+    async for station in stations:
+        if not any((station.red, station.blue, station.green)):
+            print(station)
+
+        table[station.stop_id] = TransformedStation(
+            station_id=station.stop_id,
+            station_name=station.station_name,
+            order=station.order,
+            line=_STATION_FLAG_TO_COLOR_MAP.get((station.red, station.blue, station.green), "unknown")
+        )
 
 if __name__ == "__main__":
     app.main()
