@@ -1,6 +1,7 @@
 """Contains functionality related to Lines"""
 import json
 import logging
+import re
 
 from models import Station
 
@@ -54,18 +55,29 @@ class Line:
             value.get("direction"), value.get("train_id"), value.get("train_status")
         )
 
+    @staticmethod
+    def _is_transformedstations_message(message):
+        return re.match("^com\.udacity\.nd029\.p1\..*\.transformedstations$", message.topic()) is not None
+
+    @staticmethod
+    def _is_arrival_message(message):
+        return re.match("^com\.udacity\.nd029\.p1\..*\.arrival\..*$", message.topic()) is not None
+
+    @staticmethod
+    def _is_turnstile_summary_message(message):
+        return message.topic() == "turnstile_summary"
+
     def process_message(self, message):
         """Given a kafka message, extract data"""
-        # TODO: Based on the message topic, call the appropriate handler.
-        if True: # Set the conditional correctly to the stations Faust Table
+        if Line._is_faust_table_message(message):
             try:
                 value = json.loads(message.value())
                 self._handle_station(value)
             except Exception as e:
                 logger.fatal("bad station? %s, %s", value, e)
-        elif True: # Set the conditional to the arrival topic
+        elif Line._is_arrival_message(message):
             self._handle_arrival(message)
-        elif True: # Set the conditional to the KSQL Turnstile Summary Topic
+        elif Line._is_turnstile_summary_message(message):
             json_data = json.loads(message.value())
             station_id = json_data.get("STATION_ID")
             station = self.stations.get(station_id)
