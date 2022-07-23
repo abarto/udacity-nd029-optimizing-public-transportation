@@ -51,7 +51,7 @@ stations_topic = app.topic(
 
 
 transformed_stations_topic = app.topic(
-    "com.udacity.nd029.p1.v1.stations.transformed",
+    "com.udacity.nd029.p1.v1.transformedstations",
     value_type=TransformedStation,
     partitions=1
 )

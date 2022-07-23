@@ -42,7 +42,6 @@ class KafkaConsumer:
         if self.offset_earliest:
             self.broker_properties["auto.offset.reset"] = "earliest"
 
-        # TODO: Create the Consumer, using the appropriate type.
         if is_avro:
             self.broker_properties["schema.registry.url"] = environ.get("SCHEMA_REGISTRY_URL") or "http://localhost:8081"
             self.consumer = AvroConsumer(
