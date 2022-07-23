@@ -69,7 +69,7 @@ class Line:
 
     def process_message(self, message):
         """Given a kafka message, extract data"""
-        if Line._is_faust_table_message(message):
+        if Line._is_transformedstations_message(message):
             try:
                 value = json.loads(message.value())
                 self._handle_station(value)

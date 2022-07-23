@@ -32,7 +32,8 @@ class KafkaConsumer:
         self.sleep_secs = sleep_secs
         self.consume_timeout = consume_timeout
         self.offset_earliest = offset_earliest
-        self.group_id = f'{re.sub(r"[^\w]", "-", self.topic_name_pattern)}-group'
+        safe_topic_name_pattern = re.sub(r"[^\w]", "-", self.topic_name_pattern)
+        self.group_id = f'{safe_topic_name_pattern}-group'
 
         self.broker_properties = {
             "bootstrap.servers": environ.get("BROKER_URL") or "plaintext://localhost:9092",
@@ -82,7 +83,7 @@ class KafkaConsumer:
                 logger.info("%s: Error recieved polling message: %s", self.group_id, message.error())
             else:
                 logger.debug("%s: Consumed message. key: %s, message: %s", message.key(), message.value())
-                self.message_handler(message.value())
+                self.message_handler(message)
                 return 1
         except:
             logger.exception("%s: Exception raised while consuming message", self.group_id) 
