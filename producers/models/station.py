@@ -41,10 +41,7 @@ class Station(Producer):
             key_schema=Station.key_schema,
             value_schema=Station.value_schema,
             num_partitions=10,
-            num_replicas=1,
-            topic_config={
-                "cleanup.policy": "compact"
-            }
+            num_replicas=1
         )
 
         self.station_id = int(station_id)
