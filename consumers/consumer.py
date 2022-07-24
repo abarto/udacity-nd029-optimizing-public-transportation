@@ -32,17 +32,14 @@ class KafkaConsumer:
         self.sleep_secs = sleep_secs
         self.consume_timeout = consume_timeout
         self.offset_earliest = offset_earliest
-        safe_topic_name_pattern = re.sub(r"[^\w.]|(\.[^\.]*$)", "", self.topic_name_pattern)
-        self.group_id = f'{safe_topic_name_pattern}-group'
+        self.group_id = f'{topic_name_pattern}-group'
 
         self.broker_properties = {
             "bootstrap.servers": environ.get("BROKER_URL") or "plaintext://localhost:9092",
             "group.id": self.group_id,
-            "allow.auto.create.topics": False
+            "allow.auto.create.topics": False,
+            "auto.offset.reset": "earliest" if offset_earliest else "latest"
         }
-
-        if self.offset_earliest:
-            self.broker_properties["auto.offset.reset"] = "earliest"
 
         if is_avro:
             self.broker_properties["schema.registry.url"] = environ.get("SCHEMA_REGISTRY_URL") or "http://localhost:8081"
@@ -54,7 +51,7 @@ class KafkaConsumer:
                 self.broker_properties
             )
 
-        self.consumer.subscribe([f"{self.topic_name_pattern}"], on_assign=self.on_assign)
+        self.consumer.subscribe([self.topic_name_pattern], on_assign=self.on_assign)
 
     def on_assign(self, consumer, partitions):
         """Callback for when topic assignment takes place"""
@@ -75,7 +72,7 @@ class KafkaConsumer:
     def _consume(self):
         """Polls for a message. Returns 1 if a message was received, 0 otherwise"""
         try:
-            message = self.consumer.poll(1.0)
+            message = self.consumer.poll(self.consume_timeout)
             if message is None:
                 logger.info("%s: No mesage was received", self.group_id)
             elif message.error() is not None:
@@ -84,6 +81,8 @@ class KafkaConsumer:
                 logger.debug("%s: Consumed message. key: %s, message: %s", message.key(), message.value())
                 self.message_handler(message)
                 return 1
+        except KeyboardInterrupt:
+            raise
         except:
             logger.exception("%s: Exception raised while consuming message", self.group_id) 
 

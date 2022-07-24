@@ -68,9 +68,6 @@ table = app.Table(
 @app.agent(stations_topic)
 async def transform_stations(stations):
     async for station in stations:
-        if not any((station.red, station.blue, station.green)):
-            print(station)
-
         table[station.stop_id] = TransformedStation(
             station_id=station.stop_id,
             station_name=station.station_name,
