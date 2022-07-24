@@ -32,12 +32,13 @@ class KafkaConsumer:
         self.sleep_secs = sleep_secs
         self.consume_timeout = consume_timeout
         self.offset_earliest = offset_earliest
-        safe_topic_name_pattern = re.sub(r"[^\w]", "-", self.topic_name_pattern)
+        safe_topic_name_pattern = re.sub(r"[^\w.]|(\.[^\.]*$)", "", self.topic_name_pattern)
         self.group_id = f'{safe_topic_name_pattern}-group'
 
         self.broker_properties = {
             "bootstrap.servers": environ.get("BROKER_URL") or "plaintext://localhost:9092",
-            "group.id": self.group_id
+            "group.id": self.group_id,
+            "allow.auto.create.topics": False
         }
 
         if self.offset_earliest:
@@ -60,8 +61,6 @@ class KafkaConsumer:
         if self.offset_earliest:
             for partition in partitions:
                 partition.offset = OFFSET_BEGINNING
-        consumer.assign(partitions)
-
         logger.info("partitions assigned for %s", self.topic_name_pattern)
         consumer.assign(partitions)
 
