@@ -33,6 +33,7 @@ class Line:
     def _handle_arrival(self, message):
         """Updates train locations"""
         value = message.value()
+
         prev_station_id = value.get("prev_station_id")
         prev_dir = value.get("prev_direction")
         if prev_dir is not None and prev_station_id is not None:
@@ -40,10 +41,10 @@ class Line:
             if prev_station is not None:
                 prev_station.handle_departure(prev_dir)
             else:
-                logger.debug("unable to handle previous station due to missing station")
+                logger.debug("Unable to handle previous station due to missing station")
         else:
             logger.debug(
-                "unable to handle previous station due to missing previous info"
+                "Unable to handle previous station due to missing previous info"
             )
 
         station_id = value.get("station_id")
@@ -51,21 +52,23 @@ class Line:
         if station is None:
             logger.debug("unable to handle message due to missing station")
             return
+
         station.handle_arrival(
             value.get("direction"), value.get("train_id"), value.get("train_status")
         )
 
+
     @staticmethod
     def _is_transformedstations_message(message):
-        return re.match("^com\.udacity\.nd029\.p1\..*\.transformedstations$", message.topic()) is not None
+        return re.match("^com\.udacity\.nd029\.p1\.v1\.transformedstations$", message.topic()) is not None
 
     @staticmethod
     def _is_arrival_message(message):
-        return re.match("^com\.udacity\.nd029\.p1\..*\.arrival\..*$", message.topic()) is not None
+        return re.match("^com\.udacity\.nd029\.p1\.v1\.arrival\..*$", message.topic()) is not None
 
     @staticmethod
     def _is_turnstile_summary_message(message):
-        return message.topic() == "turnstile_summary"
+        return message.topic() == "TURNSTILE_SUMMARY"
 
     def process_message(self, message):
         """Given a kafka message, extract data"""
@@ -87,5 +90,5 @@ class Line:
             station.process_message(json_data)
         else:
             logger.debug(
-                "unable to find handler for message from topic %s", message.topic
+                "unable to find handler for message from topic %s", message.topic()
             )

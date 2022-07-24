@@ -1,15 +1,11 @@
 """Contains functionality related to Weather"""
+import json
 import logging
 
 from enum import IntEnum
 
 
 logger = logging.getLogger(__name__)
-
-_STATUS = IntEnum(
-    "status", "sunny partly_cloudy cloudy windy precipitation", start=0
-)
-
 
 class Weather:
     """Defines the Weather model"""
@@ -25,4 +21,4 @@ class Weather:
         value = message.value()
 
         self.temperature = value["temperature"]
-        self.status = _STATUS(value["status"])
+        self.status = value["status"]

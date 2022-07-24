@@ -20,7 +20,7 @@ CREATE STREAM turnstile (
     timestamp BIGINT,
     station_id BIGINT,
     station_name VARCHAR,
-    line INT
+    line VARCHAR
 ) WITH (
     KAFKA_TOPIC='com.udacity.nd029.p1.v1.turnstile',
     VALUE_FORMAT='AVRO',

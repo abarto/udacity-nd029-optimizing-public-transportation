@@ -65,9 +65,9 @@ class Station(Producer):
             value={
                 "station_id": self.station_id,
                 "train_id": train.train_id,
-                "direction": getattr(self, f"dir_{direction}").name,
-                "line": self.color,
-                "train_status": train.status,
+                "direction": direction,
+                "line": self.color.name,
+                "train_status": train.status.name,
                 "prev_station_id": prev_station_id,
                 "prev_direction": prev_direction
             }

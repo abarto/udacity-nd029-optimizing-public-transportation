@@ -91,7 +91,7 @@ class Weather(Producer):
                         "key": {"timestamp": time_millis()},
                         "value": {
                             "temperature": self.temp,
-                            "status": self.status
+                            "status": self.status.name  # Sending the label instead of the enum valuue
                         },
                     }
                 ]

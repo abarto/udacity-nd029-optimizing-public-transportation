@@ -68,8 +68,8 @@ table = app.Table(
 @app.agent(stations_topic)
 async def transform_stations(stations):
     async for station in stations:
-        table[station.stop_id] = TransformedStation(
-            station_id=station.stop_id,
+        table[station.station_id] = TransformedStation(
+            station_id=station.station_id,
             station_name=station.station_name,
             order=station.order,
             line=_STATION_FLAG_TO_COLOR_MAP.get((station.red, station.blue, station.green), "unknown")

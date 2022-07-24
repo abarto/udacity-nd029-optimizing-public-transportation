@@ -9,7 +9,7 @@
     },
     {
       "name": "status",
-      "type": "int"
+      "type": "string"
     }
   ]
 }

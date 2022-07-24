@@ -17,6 +17,10 @@ logger = logging.getLogger(__name__)
 class KafkaConsumer:
     """Defines the base kafka consumer class"""
 
+    @staticmethod
+    def error_cb(error):
+        logger.error("error: %s", error)
+
     def __init__(
         self,
         topic_name_pattern,
@@ -38,7 +42,8 @@ class KafkaConsumer:
             "bootstrap.servers": environ.get("BROKER_URL") or "plaintext://localhost:9092",
             "group.id": self.group_id,
             "allow.auto.create.topics": False,
-            "auto.offset.reset": "earliest" if offset_earliest else "latest"
+            "auto.offset.reset": "earliest" if offset_earliest else "latest",
+            "error_cb": KafkaConsumer.error_cb
         }
 
         if is_avro:
@@ -73,12 +78,14 @@ class KafkaConsumer:
         """Polls for a message. Returns 1 if a message was received, 0 otherwise"""
         try:
             message = self.consumer.poll(self.consume_timeout)
+
             if message is None:
-                logger.info("%s: No mesage was received", self.group_id)
+                logger.debug("%s: No mesage was received", self.group_id)
             elif message.error() is not None:
                 logger.info("%s: Error recieved polling message: %s", self.group_id, message.error())
             else:
-                logger.debug("%s: Consumed message. key: %s, message: %s", message.key(), message.value())
+                logger.debug("%s: Consumed message. key: %s, message: %s",
+                    self.group_id, message.key(), message.value())
                 self.message_handler(message)
                 return 1
         except KeyboardInterrupt:

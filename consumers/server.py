@@ -34,9 +34,13 @@ class MainHandler(tornado.web.RequestHandler):
     def get(self):
         """Responds to get requests"""
         logging.debug("rendering and writing handler template")
-        self.write(
-            MainHandler.template.generate(weather=self.weather, lines=self.lines)
-        )
+
+        try:
+            self.write(
+                MainHandler.template.generate(weather=self.weather, lines=self.lines)
+            )
+        except:
+            logger.exception("Exception raised rendering template")
 
 
 def run_server():
@@ -74,7 +78,7 @@ def run_server():
             is_avro=False,
         ),
         KafkaConsumer(
-            "^com.udacity.nd029.p1.v1.arrival.",
+            "^com.udacity.nd029.p1.v1.arrival..*$",
             lines.process_message,
             offset_earliest=True,
         ),
